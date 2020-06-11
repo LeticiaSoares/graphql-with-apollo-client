@@ -1,5 +1,5 @@
-import React, { useRef } from 'react'
-import { useMutation } from '@apollo/react-hooks';
+import React, { useState } from 'react'
+import {useApolloClient, useMutation} from '@apollo/react-hooks';
 import gql from "graphql-tag";
 import Form from "../../components/Form"
 import Input from '../../components/Form/Input'
@@ -16,52 +16,58 @@ const LOGIN = gql`
     }      
 `;
 
-const SET_SESSION_ID = gql`
-    mutation SetSessionId($session_id: String) {
-        setSessionId(session_id: $session_id) @client
-    }
-`;
 
-const Login = () => {
 
-    const email = useRef('');
-    const password = useRef('');
+const Login = ({openAlert}) => {
+    const [ email, setEmail ] = useState()
+    const [ password, setPassword ] = useState()
 
     const [setSessionId] = useMutation(SET_SESSION_ID);
+    const client = useApolloClient();
 
     const handleOnCompleted = (data) =>{
         const result = data.loginUser
-        console.log('result',result)
         const session_id = result.session_id
-        if(result.error){
-            alert('Usuário não encontrado!')
+        console.log('result',result)
+        if(result.error || !result.session_id){
+            openAlert('Usuário não encontrado!')
         }else{
-            alert('Usuário encontrado')
-            console.log('result',result)
-            setSessionId({ variables : { session_id : session_id }})
-            localStorage.setItem('session_id',result.session_id)
-            localStorage.setItem('user_id',result.id)
-            window.location.href = '/todo'
+            openAlert('Usuário encontrado!')
+            localStorage.setItem('sessionId',result.session_id)
+            localStorage.setItem('userId',result.id)
+            client.writeData({ data: { session_id: session_id}})
+            window.location.href = '/'
         }
     }
 
-    const [loginUser, { data }] = useMutation(LOGIN, {onCompleted : handleOnCompleted});
+    const [loginUser, { data, error,loading }] = useMutation(LOGIN, {onCompleted : handleOnCompleted});
+
+    if(loading) return <div>Carregando</div>
+    if(error) return <p>Error</p>
 
     const handleOnSubmit =(e)=>{
         e.preventDefault()
+        console.log('email',email)
+        console.log('password',password)
         const user = {
-            email : email.current.props.value,
-            password : password.current.props.value
+            email : email,
+            password: password
         }
         loginUser({ variables: { ...user }})
+    }
+    const handleChangeEmail = (e)=>{
+        setEmail(e.target.value)
+    }
+    const handleChangePassword = (e)=>{
+        setPassword(e.target.value)
     }
     return (
         <Container>
             <Form title='Login' text='Entre com Seu Email e Senha' onSubmit={handleOnSubmit}>
                 <Label>Email</Label>
-                <Input ref={email} type="email" value='leticia.soares@gympass.com'/>
+                <Input onChange={handleChangeEmail} value={email} type="email"/>
                 <Label>Senha</Label>
-                <Input ref={password} type="password" value='123'/>
+                <Input onChange={handleChangePassword} value={password} type="password"/>
                 <Button>Entrar</Button>
             </Form>
         </Container>

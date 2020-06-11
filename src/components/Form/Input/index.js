@@ -40,7 +40,7 @@ class Input extends Component {
         }else if(this.props.type==='email' && !regex.test(this.value)){
             message= 'Digite um email válido'
         }
-       this.setState({ message : message  },this.props.onChange)
+       this.setState({ message : message  },this.props.onChange(e))
     }
     render() {
         return (

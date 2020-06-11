@@ -1,8 +1,9 @@
 import React, {useEffect, useState} from 'react'
 import Postit from '../../components/Postit'
-import { useQuery } from '@apollo/react-hooks';
+import {useApolloClient, useQuery} from '@apollo/react-hooks';
 import gql from "graphql-tag";
 import './todo.css'
+import Button from "../../components/Form/Button";
 
 const GET_LIST = gql`
     query{
@@ -16,35 +17,55 @@ const GET_LIST = gql`
     }
 `;
 const Todo = () => {
+    const [ filteredTodoList,setFilteredTodoList] = useState([])
 
-    const onFilterPostit = (e) => {
-        // const value = e.target.value.toLowerCase()
-        // const postits = postits.filter((item)=>{
-        //     return  item.title.toLowerCase().indexOf(value) !== -1
-        // })
-        // this.setState({
-        //     postitsFilters : postits
-        // })
+    const handleOnCompleted = (data)=>{
+        client.writeData({ data: {
+                todoList :  data.getList
+        }})
     }
+    const GET_TODO = gql`
+        query getTodo {
+            todoList @client {
+                id
+                title
+            }
+        }
+    `;
 
-    const [ postits, setPostits] = useState([])
-    const [ postitsFilters, setPostitsFilters] = useState([])
-    const postitsToShow = data
-
-    const { loading, error, data } = useQuery(
-        GET_LIST
+    const handleOnchange = (e)=>{
+        const value = e.target.value
+        const { todoList } = client.readQuery({ query : GET_TODO})
+        console.log('todoList',todoList)
+        const filteredTodoList = todoList.filter((item)=>{
+            console.log('item',item)
+            return  item.title.toLowerCase().indexOf(value) !== -1
+        })
+        console.log('filteredTodo',filteredTodoList)
+        client.writeData({ data : { filteredTodoList : filteredTodoList}})
+        setFilteredTodoList(filteredTodoList)
+    }
+    const { loading, error, data, client } = useQuery(
+        GET_LIST,{
+            onCompleted : handleOnCompleted
+        }
     );
-    if (loading) return <div>Loading</div>;
-    if (error) return <div>Error</div>;
 
-    console.log('todo',data)
+    if (loading) return <div>Loading</div>;
+
+    if (error) return <div>Error</div>;
+    console.log('filteredTodoList',filteredTodoList)
+    console.log('data',data.getList)
+    const todoList = filteredTodoList.length > 0
+        ?  filteredTodoList
+        : data.getList
 
     return(
         <div className='home'>
-            <input placeholder='Pesquisar' onChange={onFilterPostit} type='text' className='home__search' />
+            <input placeholder='Pesquisar' type='text' className='home__search' onChange={handleOnchange} />
             <div>
                 <Postit/>
-                {data && data.getList.map((item,index)=>(
+                {todoList && todoList.map((item,index)=>(
                     <Postit
                         key={item.id}
                         id={item.id}

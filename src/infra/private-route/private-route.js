@@ -5,13 +5,13 @@ import gql from "graphql-tag";
 
 const IS_LOGGED_IN = gql`
     query IsUserLoggedIn {
-        session_id @client
+        sessionId @client
     }
 `;
 
 const PrivateRoute = ({ href = '/login', ...restProps }) => {
     const { data } = useQuery(IS_LOGGED_IN);
-    if (data.session_id) {
+    if (data.sessionId) {
         return <Route
             {...restProps}
         />

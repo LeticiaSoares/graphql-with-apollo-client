@@ -1,6 +1,6 @@
 import styled from 'styled-components'
 
-const Container = styled.div`
+const Container = styled.section`
     padding: 0.75rem 1rem 0;
     @media (min-width: 768px) {
         padding: 1.5rem 20% 0;
