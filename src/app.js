@@ -1,75 +1,67 @@
-import React, { useState, Component } from 'react';
+import React, { useState } from 'react';
 import ApolloClient from 'apollo-boost';
-import { InMemoryCache } from 'apollo-cache-inmemory';
 import { ApolloProvider } from '@apollo/react-hooks';
 import { Route, Switch, BrowserRouter } from 'react-router-dom'
-import gql from "graphql-tag";
 import Login from './pages/login'
 import Todo from './pages/todo'
 import Navbar from './components/Navbar'
+import Alert from './components/Alert'
 import PrivateRoute from './infra/private-route/private-route'
+import { mutations,querys } from "./local/resolvers";
+import local from "./local";
+import {InMemoryCache} from "apollo-cache-inmemory";
 
 const cache = new InMemoryCache();
 
 cache.writeData({
     data: {
         session_id: localStorage.getItem('session_id'),
+        user_id: localStorage.getItem('user_id'),
+        todoList: [],
     },
 });
+
 
 const client = new ApolloClient({
-    uri: 'http://localhost:4000/',
-    cache,
-    resolvers: {
-        Mutation: {
-            setSessionId: (_, { session_id }, { cache, getCacheKey }) => {
-                console.log('entrou aqui',session_id)
-                const data =  { isLoggedIn : 'leticia'}
-                cache.writeData({ data });
-                const query = gql`
-                    query IsUserLoggedIn {
-                        session_id @client
-                    }
-                `;
-                const previous = cache.readQuery({ query });
-                console.log('previous',previous)
-                return data
+        uri: 'http://localhost:4000/',
+        cache,
+        resolvers:{
+            Mutation:{
+                setTodoListClient : (_root, { todoList }, { cache, getCacheKey }) => {
+                    console.log('setTodoListClient',todoList)
+                    cache.writeData({data : {todoList}})
+                }
             },
-        },
-        Query: {
-            getSessionId : (_, variables,{ cache }) =>{
-                console.log('entrou no getSessionId')
-                const query = gql`
-                    query IsUserLoggedIn {
-                        session_id @client
-                    }
-                `;
-                const previous = cache.readQuery({ query });
-                console.log('previous',previous)
-            },
-        }
-    },
-    request: (operation) => {
-        const session_id = localStorage.getItem('session_id')
-        const user_id = localStorage.getItem('user_id')
-        operation.setContext({
-            headers: {
-                Authorization: session_id ? `Bearer ${session_id}` : '',
-                user_id : user_id ? user_id : ''
+            Query :{
+                ...querys
             }
-        })
-    }
-});
+        },
+        request: ({ setContext }) => {
+            const session_id = localStorage.getItem('session_id')
+            const user_id = localStorage.getItem('user_id')
+            setContext({
+                headers: {
+                    Authorization: session_id ? `${session_id}` : '',
+                    user_id: user_id ? user_id : ''
+                }
+            })
+        }
+})
 
 function App(){
+    const [ message, setMessage] = useState('')
+    const onCloseAlert = ()=>{
+        setMessage(false)
+    }
     return (
         <ApolloProvider client={client}>
             <BrowserRouter>
                 <Navbar />
                 <Switch>
-                    <PrivateRoute exact path='/todo' component={Todo}/>
-                    <Route path='/login' component={Login} />
+                    <PrivateRoute exact path='/' component={Todo}/>
+                    <Route path='/login' render={()=> <Login openAlert={setMessage}/>}/>
                 </Switch>
+                <Alert message={message} handleOnClick={onCloseAlert} />
             </BrowserRouter>
         </ApolloProvider>
     )

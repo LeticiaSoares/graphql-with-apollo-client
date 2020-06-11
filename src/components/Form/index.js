@@ -11,7 +11,7 @@ const Form = styled(({title,text,children,onSubmit,className}) =>(
     font-family: monospace;
     width: 100%; 
     h2 {
-        color: #a02a2a;
+        color: #6968d5;
     }
     p {
         font-size: 16px;

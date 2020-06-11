@@ -1,6 +1,5 @@
 import React from 'react'
 import Form from '../Form'
-// import { createPostit, deletePostit, updatePostitApi } from '../../apis/postit.api'
 
 import './postit.css'
 
@@ -25,15 +24,6 @@ class Postit extends React.Component {
         console.log('handlePostitRemove')
         e.stopPropagation()
         const id =  this.state.id
-        // deletePostit(id)
-        //     .then((response) =>{
-        //         console.log(response)
-        //         this.props.updatePostits()
-        //     })
-        //     .catch((error)=>{
-        //         console.log(error)
-        //     })
-
     }
     handlePostitSubmit = (e) => {
         e.preventDefault()
@@ -45,15 +35,6 @@ class Postit extends React.Component {
                 id : this.state.id,
                 color: this.state.color
             }
-            // updatePostitApi(postit)
-            //     .then((reponse)=>{
-            //         this.setState({
-            //             editing : false
-            //         })
-            //     })
-            //     .catch((error)=>{
-            //         console.log(error)
-            //     })
 
         }else{
 
@@ -62,24 +43,8 @@ class Postit extends React.Component {
                 text :  this.state.text,
                 color: this.state.color
             }
-
-            // createPostit(postit)
-            //     .then((response) =>{
-            //         console.log(this)
-            //         this.props.updatePostits()
-            //         this.setState({
-            //             id : '',
-            //             title : '',
-            //             text : '',
-            //             color: 'rgb(239, 203, 207)',
-            //             editing: false
-            //         })
-            //     })
-            //     .catch((error)=>{
-            //         console.log(error)
-            //     })
+            this.props.onSavePostit(postit)
         }
-
     }
     setTitle = (e) => {
         const inputTitle = e.target.value

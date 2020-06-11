@@ -12,8 +12,8 @@ const InputStyled = styled.input`
   border-radius: 5px;     
   :focus {
     outline: none;
-    border-color: #a02a2a;
-    box-shadow: 0 0 10px #a02a2a;
+    border-color: #6968d5;
+    box-shadow: 0 0 10px #6968d5;
   }
 `
 
@@ -40,7 +40,7 @@ class Input extends Component {
         }else if(this.props.type==='email' && !regex.test(this.value)){
             message= 'Digite um email válido'
         }
-       this.setState({ message : message  },this.props.onChange)
+       this.setState({ message : message  },this.props.onChange(e))
     }
     render() {
         return (
